@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Decode FXAP containers, inspect decoded ZIP archives, remove unwanted files, and download a clean archive in a temporary workspace.">
+  <meta name="theme-color" content="#0d0e15">
+  <title>FXAP Studio — Decode, inspect, repack</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></symbol>
+      <symbol id="icon-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4"/></symbol>
+      <symbol id="icon-archive" viewBox="0 0 24 24"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2M5 7h14a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a1 1 0 0 1 1-1ZM9 11h6M10 7v4"/></symbol>
+      <symbol id="icon-x" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="icon-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16.5 8"/></symbol>
+      <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="icon-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+      <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+      <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="m14 7-5 5 5 5"/></symbol>
+      <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path d="m10 7 5 5-5 5"/></symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4 4"/></symbol>
+      <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6"/></symbol>
+      <symbol id="icon-reset" viewBox="0 0 24 24"><path d="M4 8V3m0 5h5M4.8 8A8 8 0 1 1 4 14"/></symbol>
+      <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14"/></symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></symbol>
+      <symbol id="icon-alert" viewBox="0 0 24 24"><path d="M10.3 4.1 2.7 17.3A2 2 0 0 0 4.4 20h15.2a2 2 0 0 0 1.7-2.7L13.7 4.1a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+      <symbol id="icon-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol>
+      <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+      <symbol id="icon-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#" aria-label="FXAP Studio home">
+        <span class="brand-mark" aria-hidden="true">F<span></span></span>
+        <span class="brand-name">FXAP <strong>Studio</strong></span>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="active" href="#workspace">Workspace</a>
+        <a href="#guide">How it works</a>
+      </nav>
+      <div class="session-pill"><span class="status-dot"></span>Memory-only sessions</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="eyebrow"><span></span>FIVEM RESOURCE UTILITY <b>v1.0</b></div>
+      <h1 id="hero-title">Decode. Inspect. <span>Repack.</span></h1>
+      <p>Unlock the container, see exactly what’s inside, and remove what you don’t need—all in one focused workspace.</p>
+      <div class="hero-features" aria-label="Product features">
+        <span><svg class="icon"><use href="#icon-layers"/></svg>FXAP container decoding</span>
+        <span><svg class="icon"><use href="#icon-shield"/></svg>Safe ZIP extraction</span>
+        <span><svg class="icon"><use href="#icon-clock"/></svg>30-minute expiry</span>
+      </div>
+    </section>
+
+    <section class="workspace" id="workspace" aria-label="FXAP processing workspace">
+      <ol class="stepper" aria-label="Processing steps">
+        <li class="current" data-step="1"><span class="step-number">1</span><span><b>Upload</b><small>Choose your file</small></span></li>
+        <li class="step-connector" aria-hidden="true"></li>
+        <li data-step="2"><span class="step-number">2</span><span><b>Decode</b><small>Inspect the payload</small></span></li>
+        <li class="step-connector" aria-hidden="true"></li>
+        <li data-step="3"><span class="step-number">3</span><span><b>Edit &amp; export</b><small>Clean up and download</small></span></li>
+      </ol>
+
+      <div id="upload-view">
+        <div class="upload-layout">
+          <div class="panel upload-panel">
+            <div class="panel-heading">
+              <span class="heading-icon violet"><svg class="icon"><use href="#icon-upload"/></svg></span>
+              <div><h2>Start with your resource</h2><p>Upload an FXAP container or an already-decoded ZIP.</p></div>
+            </div>
+
+            <div id="upload-error" class="alert error-alert" role="alert" hidden>
+              <svg class="icon"><use href="#icon-alert"/></svg><span></span>
+            </div>
+
+            <form id="upload-form" novalidate>
+              <input id="file-input" type="file" accept=".fxap,.zip,application/zip" hidden>
+              <div id="drop-zone" class="drop-zone" role="button" tabindex="0" aria-label="Choose or drop an FXAP or ZIP file" aria-describedby="drop-help">
+                <div class="upload-illustration" aria-hidden="true">
+                  <span class="illustration-ring"></span>
+                  <svg class="icon"><use href="#icon-upload"/></svg>
+                </div>
+                <h3>Drop your file here</h3>
+                <p id="drop-help">or <button id="browse-button" class="text-button" type="button">browse your device</button></p>
+                <span class="file-limits">.FXAP or .ZIP <i></i> Up to 25 MiB</span>
+              </div>
+
+              <div id="selected-file" class="selected-file" hidden>
+                <span class="selected-file-icon"><svg class="icon"><use href="#icon-file"/></svg></span>
+                <div class="selected-file-meta"><strong id="selected-file-name"></strong><span id="selected-file-size"></span></div>
+                <span class="ready-badge"><svg class="icon"><use href="#icon-check"/></svg>Ready</span>
+                <button id="clear-file" class="icon-button" type="button" aria-label="Remove selected file"><svg class="icon"><use href="#icon-x"/></svg></button>
+              </div>
+
+              <details class="advanced-options">
+                <summary><span><svg class="icon"><use href="#icon-lock"/></svg>Advanced decoding options</span><svg class="icon chevron"><use href="#icon-chevron-down"/></svg></summary>
+                <div class="advanced-content">
+                  <label for="content-key">Content key <span>Optional</span></label>
+                  <input id="content-key" type="password" inputmode="text" autocomplete="off" spellcheck="false" maxlength="80" placeholder="64 hexadecimal characters">
+                  <p>Only needed for a second encrypted content layer. This is a 32-byte asset content key, <strong>not</strong> a Cfx.re server license key.</p>
+                </div>
+              </details>
+
+              <button id="decode-button" class="button primary-button decode-button" type="submit" disabled>
+                <span>Decode &amp; inspect</span><svg class="icon"><use href="#icon-arrow-right"/></svg>
+              </button>
+              <p class="authorization-note"><svg class="icon"><use href="#icon-shield"/></svg>Only process resources you own or have permission to modify.</p>
+            </form>
+          </div>
+
+          <aside class="workspace-aside">
+            <div class="panel process-panel">
+              <span class="aside-kicker">WHAT HAPPENS NEXT</span>
+              <h2>A clear path to a clean archive.</h2>
+              <ul class="process-list">
+                <li><span>01</span><div><strong>Decode the container</strong><p>FiveM-compatible ChaCha20 decoding handles the FXAP wrapper.</p></div></li>
+                <li><span>02</span><div><strong>Inspect every entry</strong><p>ZIP contents are extracted in memory with path and size checks.</p></div></li>
+                <li><span>03</span><div><strong>Remove &amp; repack</strong><p>Select individual files, clear everything, or reset and start over.</p></div></li>
+              </ul>
+            </div>
+            <div class="privacy-card">
+              <span class="privacy-icon"><svg class="icon"><use href="#icon-shield"/></svg></span>
+              <div><strong>Your files stay temporary.</strong><p>No upload directories. No database. Sessions are wiped automatically after 30 minutes.</p></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <div id="processing-view" class="panel processing-panel" hidden aria-live="polite">
+        <div class="processing-visual" aria-hidden="true"><span></span><svg class="icon"><use href="#icon-layers"/></svg></div>
+        <span class="aside-kicker">WORKING ON YOUR RESOURCE</span>
+        <h2 id="processing-title">Uploading your file…</h2>
+        <p id="processing-file" class="processing-file"></p>
+        <progress id="upload-progress" max="100" value="0" aria-label="Upload progress"></progress>
+        <div class="progress-caption"><span id="progress-status">Preparing upload</span><strong id="progress-value">0%</strong></div>
+        <ol class="processing-stages">
+          <li id="stage-upload" class="current"><span><svg class="icon"><use href="#icon-check"/></svg></span>Secure upload</li>
+          <li id="stage-decode"><span><svg class="icon"><use href="#icon-check"/></svg></span>Decode &amp; inspect</li>
+          <li id="stage-ready"><span><svg class="icon"><use href="#icon-check"/></svg></span>Workspace ready</li>
+        </ol>
+      </div>
+
+      <div id="editor-view" hidden>
+        <div id="result-banner" class="result-banner">
+          <span id="result-icon" class="result-icon"><svg class="icon"><use href="#icon-check-circle"/></svg></span>
+          <div class="result-copy"><h2 id="result-title">Archive ready for cleanup</h2><p id="result-description"></p><div id="result-tags" class="result-tags"></div></div>
+          <span class="session-badge"><span class="status-dot"></span>Active session</span>
+        </div>
+
+        <div id="editor-error" class="alert error-alert" role="alert" hidden><svg class="icon"><use href="#icon-alert"/></svg><span></span></div>
+
+        <div class="summary-grid" aria-label="Workspace summary">
+          <div class="summary-card"><span class="summary-icon"><svg class="icon"><use href="#icon-file"/></svg></span><div><small id="summary-one-label">Source file</small><strong id="summary-one-value" title=""></strong></div></div>
+          <div class="summary-card"><span class="summary-icon teal"><svg class="icon"><use href="#icon-layers"/></svg></span><div><small id="summary-two-label">Decoded size</small><strong id="summary-two-value"></strong></div></div>
+          <div class="summary-card"><span class="summary-icon blue"><svg class="icon"><use href="#icon-archive"/></svg></span><div><small id="summary-three-label">Files remaining</small><strong id="summary-three-value"></strong></div></div>
+          <div class="summary-card"><span class="summary-icon amber"><svg class="icon"><use href="#icon-trash"/></svg></span><div><small id="summary-four-label">Files removed</small><strong id="summary-four-value"></strong></div></div>
+        </div>
+
+        <div id="archive-editor" class="panel archive-panel">
+          <div class="archive-heading">
+            <div><h2>Archive contents <span id="file-count-badge">0</span></h2><p>Select files to remove them from the processed ZIP.</p></div>
+            <div class="archive-actions">
+              <button id="reset-archive" class="button secondary-button" type="button"><svg class="icon"><use href="#icon-reset"/></svg>Reset</button>
+              <button id="clear-archive" class="button danger-quiet-button" type="button"><svg class="icon"><use href="#icon-trash"/></svg>Clear archive</button>
+            </div>
+          </div>
+          <div class="file-toolbar">
+            <label class="search-field" for="file-search"><svg class="icon"><use href="#icon-search"/></svg><input id="file-search" type="search" placeholder="Search files and folders…" autocomplete="off"></label>
+            <label class="sort-field"><span class="sr-only">Sort archive files</span><select id="file-sort"><option value="name-asc">Name: A to Z</option><option value="name-desc">Name: Z to A</option><option value="size-desc">Size: largest first</option><option value="size-asc">Size: smallest first</option></select><svg class="icon"><use href="#icon-chevron-down"/></svg></label>
+            <button id="remove-selected" class="button remove-button" type="button" disabled><svg class="icon"><use href="#icon-trash"/></svg><span>Remove selected</span><b id="selected-count" hidden>0</b></button>
+          </div>
+
+          <div id="table-container" class="table-container">
+            <table class="file-table">
+              <thead><tr><th class="check-column"><input id="select-page" type="checkbox" aria-label="Select all files on this page"></th><th>Name</th><th>Type</th><th>Size</th><th>Modified</th><th><span class="sr-only">Actions</span></th></tr></thead>
+              <tbody id="file-list"></tbody>
+            </table>
+          </div>
+          <div id="empty-state" class="empty-state" hidden>
+            <span><svg class="icon"><use href="#icon-archive"/></svg></span><h3 id="empty-title">Archive is empty</h3><p id="empty-description">You can download a valid empty ZIP or reset to restore its files.</p>
+          </div>
+          <div class="table-footer"><span id="pagination-summary">Showing 0 files</span><div class="pagination"><button id="previous-page" class="icon-button" type="button" aria-label="Previous page"><svg class="icon"><use href="#icon-chevron-left"/></svg></button><span id="page-indicator">1 / 1</span><button id="next-page" class="icon-button" type="button" aria-label="Next page"><svg class="icon"><use href="#icon-chevron-right"/></svg></button></div></div>
+        </div>
+
+        <div id="binary-result" class="panel binary-panel" hidden>
+          <span class="binary-icon"><svg class="icon"><use href="#icon-code"/></svg></span>
+          <div><h2>Decoded binary, not a ZIP archive</h2><p>The container was decoded successfully, but its payload has no ZIP signature. FiveM <code>.fxap</code> descriptors commonly contain binary metadata, so there are no archive entries to edit.</p><ul><li><svg class="icon"><use href="#icon-check"/></svg>No fabricated archive entries</li><li><svg class="icon"><use href="#icon-check"/></svg>Decoded bytes preserved exactly</li></ul></div>
+        </div>
+
+        <div class="export-bar">
+          <div><button id="new-upload" class="button secondary-button" type="button"><svg class="icon"><use href="#icon-plus"/></svg>New upload</button><span><svg class="icon"><use href="#icon-clock"/></svg><span id="session-expiry"></span></span></div>
+          <a id="download-button" class="button primary-button" href="#" download><svg class="icon"><use href="#icon-download"/></svg><span id="download-label">Download processed ZIP</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="guide" id="guide" aria-labelledby="guide-title">
+      <div class="section-heading"><span class="aside-kicker">NO BLACK BOX</span><h2 id="guide-title">A transparent workflow.</h2><p>Know what happened to your resource at every step.</p></div>
+      <div class="guide-grid">
+        <article><span class="guide-number">01</span><span class="guide-icon"><svg class="icon"><use href="#icon-lock"/></svg></span><h3>Real container decoding</h3><p>ZIP signatures are detected directly. FXAP input is decoded with its container layout, plus an optional content key for a second layer.</p></article>
+        <article><span class="guide-number">02</span><span class="guide-icon"><svg class="icon"><use href="#icon-archive"/></svg></span><h3>Careful in-memory extraction</h3><p>Entries are checked for unsafe paths, duplicates, encryption, symlinks, and excessive sizes before they enter your workspace.</p></article>
+        <article><span class="guide-number">03</span><span class="guide-icon"><svg class="icon"><use href="#icon-download"/></svg></span><h3>A fresh, valid ZIP</h3><p>Removed entries are omitted when your new archive is built. The source upload is never modified, and reset is always available.</p></article>
+      </div>
+      <div class="format-note"><svg class="icon"><use href="#icon-info"/></svg><div><strong>A quick note about .fxap</strong><p>A FiveM <code>.fxap</code> descriptor is usually protected metadata—not a ZIP file. When decoded data is not a ZIP, FXAP Studio says so and offers the exact decoded bytes for download. It does not retrieve Keymaster grants, bypass entitlements, or decompile Lua.</p></div></div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div><a class="brand footer-brand" href="#"><span class="brand-mark" aria-hidden="true">F<span></span></span><span class="brand-name">FXAP <strong>Studio</strong></span></a><p>Built for authorized FiveM resource maintenance.</p></div><span id="backend-status" class="backend-status"><span class="status-dot"></span>Checking backend…</span></footer>
+
+  <dialog id="clear-dialog" class="confirm-dialog" aria-labelledby="clear-dialog-title">
+    <form method="dialog">
+      <span class="dialog-icon"><svg class="icon"><use href="#icon-alert"/></svg></span>
+      <h2 id="clear-dialog-title">Clear the entire archive?</h2>
+      <p>Every file and folder will be omitted from the processed ZIP. You can still use <strong>Reset</strong> to restore them during this session.</p>
+      <div class="dialog-actions"><button class="button secondary-button" value="cancel">Cancel</button><button id="confirm-clear" class="button danger-button" value="default">Clear archive</button></div>
+    </form>
+  </dialog>
+
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="false"></div>
+</body>
+</html>
